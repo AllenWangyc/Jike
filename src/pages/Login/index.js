@@ -1,12 +1,21 @@
 import './index.scss'
-import { Card, Input, Button, Form } from 'antd'
+import { Card, Input, Button, Form, message } from 'antd'
 import logo from '@/assets/logo.png'
+import { fetchLogin } from '@/store/modules/user'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
 
-  const onFinish = (values) => {
-    console.log(values);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const onFinish = async (values) => {
+    await dispatch(fetchLogin(values))
+    navigate('/')
+    message.success('Login successfully!')
   }
+
   return (
     <div className='login'>
       <Card className='login-container'>
@@ -14,7 +23,7 @@ const Login = () => {
         {/* login form */}
         <Form validateTrigger='onBlur' onFinish={onFinish}>
           <Form.Item
-            name='phone'
+            name='mobile'
             rules={[
               {
                 required: true,
