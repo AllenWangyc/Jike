@@ -1,6 +1,10 @@
+import BarChart from './components/BarChart'
+
 const Home = () => {
   return (
-    <div>Home Page</div>
+    <div>
+      <BarChart titleText={'Degree of satisfaction'} />
+    </div>
   )
 }
 

@@ -1,5 +1,6 @@
 import axios from "axios"
-import { getToken } from "./token"
+import { getToken, removeToken } from "./token"
+import router from "@/router"
 
 /**
  * axois encapsulation
@@ -29,6 +30,12 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use((response) => {
   return response.data
 }, (error) => {
+  console.dir(error)
+  if (error.response.status === 401) {
+    removeToken()
+    router.navigate('/login')
+    window.location.reload()
+  }
   return Promise.reject(error)
 })
 
