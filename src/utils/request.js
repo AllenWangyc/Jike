@@ -1,4 +1,5 @@
 import axios from "axios"
+import { getToken } from "./token"
 
 /**
  * axois encapsulation
@@ -14,6 +15,11 @@ const request = axios.create({
 
 // add some parameters before send a request
 request.interceptors.request.use((config) => {
+  // inject token to request header
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 }, (error) => {
   return Promise.reject(error)
