@@ -7,32 +7,25 @@ import {
   Input,
   Upload,
   Space,
-  Select
+  Select,
+  message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import React, { useEffect, useState } from 'react'
-import { createArticleAPI, getChannelAPI } from '@/apis/user'
+import React, { useState } from 'react'
+import { createArticleAPI } from '@/apis/user'
+import { useChannel } from '@/hooks/useChannel'
 
 const { Option } = Select
 
 const Publish = () => {
-  const [channelList, setChannelList] = useState([])
   const [imageList, setImageList] = useState([])
   const [imageType, setImageType] = useState(0)
 
-  useEffect(() => {
-    // 1. encapsulate a function, using interface
-    const getChannelList = async () => {
-      const res = await getChannelAPI()
-      setChannelList(res.data.channels)
-    }
-    // 2. invoke function
-    getChannelList()
-  }, [])
+  const { channelList } = useChannel()
 
   const onFinish = (value) => {
     const { title, content, channel_id } = value
@@ -40,17 +33,18 @@ const Publish = () => {
       title,
       content,
       cover: {
-        type: 0,
-        images: []
+        type: imageType,
+        images: imageList.map(item => item.response.data.url) // [imageList: {response: {data: {url: string}}}]
       },
       channel_id
     }
+    if (imageType !== reqData.cover.images.length) return message.warning('The numberof over pictures do not match with type')
+
     createArticleAPI(reqData)
   }
 
   // upload callback
   const onChange = (value) => {
-    console.log('Uploading...', value);
     setImageList(value.fileList)
   }
 
@@ -111,6 +105,7 @@ const Publish = () => {
               action={'http://geek.itheima.net/v1_0/upload'}
               name='image'
               onChange={onChange}
+              maxCount={imageType}
             >
               <div style={{ marginTop: 8 }}>
                 <PlusOutlined />
