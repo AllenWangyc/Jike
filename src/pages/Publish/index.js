@@ -12,10 +12,26 @@ import {
 import { PlusOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import './index.scss'
+import ReactQuill from 'react-quill'
+import 'react-quill/dist/quill.snow.css'
+import React, { useEffect, useState } from 'react'
+import { getChannelAPI } from '@/apis/user'
 
 const { Option } = Select
 
 const Publish = () => {
+  const [channelList, setChannelList] = useState([])
+
+  useEffect(() => {
+    // 1. encapsulate a function, using interface
+    const getChannelList = async () => {
+      const res = await getChannelAPI()
+      setChannelList(res.data.channels)
+    }
+    // 2. invoke function
+    getChannelList()
+  }, [])
+
   return (
     <div className='publish'>
       <Card
@@ -51,7 +67,8 @@ const Publish = () => {
             }]}
           >
             <Select placeholder='Select a channel' style={{ width: 400 }}>
-              <Option value={0}>Recommendation</Option>
+              {/* value prop would be passed to backend when selected by user */}
+              {channelList.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
             </Select>
           </Form.Item>
           <Form.Item
@@ -61,7 +78,14 @@ const Publish = () => {
               required: true,
               message: 'Please enter the content'
             }]}
-          ></Form.Item>
+          >
+            {/* rich text editor with react-quill@2.0.0-beta.2 */}
+            <ReactQuill
+              className='publish-quill'
+              theme='snow'
+              placeholder='Enter the content...'
+            />
+          </Form.Item>
           <Form.Item wrapperCol={{ offset: 4 }}>
             <Space>
               <Button size='large' type='primary' htmlType='submit'>

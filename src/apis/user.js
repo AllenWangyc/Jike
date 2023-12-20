@@ -18,3 +18,11 @@ export function getProfileAPI() {
     method: 'GET'
   })
 }
+
+// 3. get all channels in publish page
+export function getChannelAPI() {
+  return request({
+    url: 'channels',
+    method: 'GET',
+  })
+}
