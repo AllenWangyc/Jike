@@ -15,12 +15,14 @@ import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import React, { useEffect, useState } from 'react'
-import { getChannelAPI } from '@/apis/user'
+import { createArticleAPI, getChannelAPI } from '@/apis/user'
 
 const { Option } = Select
 
 const Publish = () => {
   const [channelList, setChannelList] = useState([])
+  const [imageList, setImageList] = useState([])
+  const [imageType, setImageType] = useState(0)
 
   useEffect(() => {
     // 1. encapsulate a function, using interface
@@ -31,6 +33,30 @@ const Publish = () => {
     // 2. invoke function
     getChannelList()
   }, [])
+
+  const onFinish = (value) => {
+    const { title, content, channel_id } = value
+    const reqData = {
+      title,
+      content,
+      cover: {
+        type: 0,
+        images: []
+      },
+      channel_id
+    }
+    createArticleAPI(reqData)
+  }
+
+  // upload callback
+  const onChange = (value) => {
+    console.log('Uploading...', value);
+    setImageList(value.fileList)
+  }
+
+  const onTypeChange = (e) => {
+    setImageType(e.target.value)
+  }
 
   return (
     <div className='publish'>
@@ -43,10 +69,10 @@ const Publish = () => {
           />
         }
       >
-        <Form
+        <Form onFinish={onFinish}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 16 }}
-          initialValues={{ type: 1 }}
+          initialValues={{ type: 0 }}
         >
           <Form.Item
             label="Title"
@@ -70,6 +96,26 @@ const Publish = () => {
               {/* value prop would be passed to backend when selected by user */}
               {channelList.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
             </Select>
+          </Form.Item>
+          <Form.Item label="Cover">
+            <Form.Item name='type'>
+              <Radio.Group onChange={onTypeChange}>
+                <Radio value={1}>One-pic</Radio>
+                <Radio value={3}>Three-pic</Radio>
+                <Radio value={0}>None</Radio>
+              </Radio.Group>
+            </Form.Item>
+            {imageType > 0 && <Upload
+              listType='picture-card'
+              showUploadList
+              action={'http://geek.itheima.net/v1_0/upload'}
+              name='image'
+              onChange={onChange}
+            >
+              <div style={{ marginTop: 8 }}>
+                <PlusOutlined />
+              </div>
+            </Upload>}
           </Form.Item>
           <Form.Item
             label="Content"

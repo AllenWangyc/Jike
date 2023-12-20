@@ -26,3 +26,12 @@ export function getChannelAPI() {
     method: 'GET',
   })
 }
+
+// 4. pulish article
+export function createArticleAPI(data) {
+  return request({
+    url: '/mp/articles?draft=false',
+    method: 'POST',
+    data
+  })
+}
