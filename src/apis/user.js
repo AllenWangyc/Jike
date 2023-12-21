@@ -44,3 +44,11 @@ export function getArticleListAPI(data) {
     data
   })
 }
+
+// 6. delete article item
+export function delArticleAPI(id) {
+  return request({
+    url: `mp/articles/${id}`,
+    method: 'DELETE'
+  })
+}
