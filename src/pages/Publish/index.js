@@ -11,18 +11,22 @@ import {
   message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import React, { useState } from 'react'
-import { createArticleAPI } from '@/apis/user'
+import React, { useEffect, useState } from 'react'
+import { createArticleAPI, getArticleById } from '@/apis/user'
 import { useChannel } from '@/hooks/useChannel'
 
 const { Option } = Select
 
 const Publish = () => {
   const [imageList, setImageList] = useState([])
+
+  /**
+   * @param {number} imageType: 0 -- non pic, 1 -- one-pic, 3 -- three-pic 
+   */
   const [imageType, setImageType] = useState(0)
 
   const { channelList } = useChannel()
@@ -52,13 +56,50 @@ const Publish = () => {
     setImageType(e.target.value)
   }
 
+  // get article id
+  const [searchParams] = useSearchParams()
+  const articleId = searchParams.get('id')
+  // get form instance
+  const [form] = Form.useForm()
+  useEffect(() => {
+    async function getArticleDetail() {
+      const res = await getArticleById(articleId)
+      const data = res.data
+      const { cover } = data
+
+      /**
+       * form.setFieldsValue(res.data) 
+       * Refill basic information of article (title, channel, content)
+       * Notice: cannot refill cover type and image
+       * Reason: param res.data {cover: {type: 3} }
+       * .setFieldsValue() needs {type}, data are not matched
+       */
+
+      form.setFieldsValue({
+        ...data,
+        type: cover.type
+      })
+
+      // refill image list
+      setImageType(cover.type)
+      // refill images
+      setImageList(cover.images.map(url => {
+        return { url }
+      }))
+    }
+    // invoke function if acricleId exist
+    if (articleId) {
+      getArticleDetail()
+    }
+  }, [articleId, form])
+
   return (
     <div className='publish'>
       <Card
         title={
           <Breadcrumb items={[
             { title: <Link to={'/'}>Home</Link> },
-            { title: 'Publish' }
+            { title: `${articleId ? 'Edit' : 'Publish'}` }
           ]}
           />
         }
@@ -67,6 +108,7 @@ const Publish = () => {
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 16 }}
           initialValues={{ type: 0 }}
+          form={form}
         >
           <Form.Item
             label="Title"
@@ -106,6 +148,7 @@ const Publish = () => {
               name='image'
               onChange={onChange}
               maxCount={imageType}
+              fileList={imageList} // use for refill images
             >
               <div style={{ marginTop: 8 }}>
                 <PlusOutlined />

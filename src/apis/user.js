@@ -52,3 +52,11 @@ export function delArticleAPI(id) {
     method: 'DELETE'
   })
 }
+
+// 7. get article
+export function getArticleById(id) {
+  return request({
+    url: `mp/articles/${id}`,
+    method: 'GET'
+  })
+}

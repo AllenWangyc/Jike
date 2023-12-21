@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Card, Breadcrumb, Form, Button, Radio, DatePicker, Select, Popconfirm } from "antd"
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 
@@ -16,6 +16,7 @@ const { RangePicker } = DatePicker
 
 const Article = () => {
   const { channelList } = useChannel()
+  const navigate = useNavigate()
 
   //  @parameter {object} reqDate: filter conditions 
   const [reqData, setReqData] = useState({
@@ -38,8 +39,6 @@ const Article = () => {
   }, [reqData]) // invoke once reqData updated
 
   const onFinish = (formValue) => {
-    console.log(formValue)
-    console.log(formValue.date[0].format('YYYY-MM-DD'))
     setReqData({
       ...reqData,
       status: formValue.status,
@@ -56,6 +55,10 @@ const Article = () => {
     })
   }
 
+  /**
+   * 
+   * @param {object} data all of porps of clicked cell in table
+   */
   const onConfirm = async (data) => {
     await delArticleAPI(data.id)
     setReqData({
@@ -111,7 +114,7 @@ const Article = () => {
       render: data => {
         return (
           <Space size="middle">
-            <Button type="primary" shape="circle" icon={<EditOutlined />} />
+            <Button type="primary" shape="circle" icon={<EditOutlined />} onClick={() => navigate(`/publish?id=${data.id}`)} />
             <Popconfirm
               title="Delete the result"
               description="Are you sure to delete the result?"
