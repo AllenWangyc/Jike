@@ -16,6 +16,43 @@ const { RangePicker } = DatePicker
 
 const Article = () => {
   const { channelList } = useChannel()
+
+  // filter data
+  const [reqData, setReqData] = useState({
+    status: '',
+    channel_id: '',
+    begin_pubdate: '',
+    end_pubdate: '',
+    page: 1,
+    per_page: 4
+  })
+
+  // get article list from backend
+  const [list, setList] = useState([])
+
+  useEffect(() => {
+    async function getList() {
+      const res = await getArticleListAPI(reqData)
+      setList(res.data.results)
+    }
+    getList()
+  }, [reqData]) // invoke once reqData updated
+
+  const onFinish = (formValue) => {
+    setReqData({
+      ...reqData,
+      status: formValue.status,
+      channel_id: formValue.channel_id,
+      begin_pubdate: formValue.date[0].format('YYYY-MM-DD'),
+      end_pubdate: formValue.date[1].format('YYYY-MM-DD')
+    })
+  }
+
+  // enum for rendering multi tags
+  const status = {
+    1: <Tag color="warning">Await assessing</Tag>,
+    2: <Tag color="green">Passed</Tag>
+  }
   const columns = [
     {
       title: 'Cover',
@@ -33,10 +70,10 @@ const Article = () => {
     {
       title: 'Status',
       dataIndex: 'status',
-      // data - 后端返回的状态status 根据它做条件渲染
-      // data === 1 => 待审核
-      // data === 2 => 审核通过
-      render: data => <Tag color="green">Passed</Tag>
+      // data - status from backend
+      // data === 1 => await assessing
+      // data === 2 => passed
+      render: data => status[data]
     },
     {
       title: 'Publish Date',
@@ -71,30 +108,6 @@ const Article = () => {
       }
     }
   ]
-  const data = [
-    {
-      id: '8218',
-      comment_count: 0,
-      cover: {
-        images: [],
-      },
-      like_count: 0,
-      pubdate: '2019-03-11 09:00:00',
-      read_count: 2,
-      status: 2,
-      title: 'off-line loading strategy'
-    }
-  ]
-
-  const [list, setList] = useState([])
-
-  useEffect(() => {
-    async function getList() {
-      const res = await getArticleListAPI()
-      setList(res.data.results)
-    }
-    getList()
-  }, [])
 
   return (
     <div>
@@ -109,7 +122,7 @@ const Article = () => {
         }
         style={{ marginBottom: 20 }}
       >
-        <Form
+        <Form onFinish={onFinish}
           initialValues={{ status: null }}
           labelCol={{ span: 1 }}
           labelAlign="left"
