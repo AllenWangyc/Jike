@@ -11,18 +11,22 @@ import {
   message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import React, { useEffect, useState } from 'react'
-import { createArticleAPI, getArticleById } from '@/apis/user'
+import { createArticleAPI, getArticleById, updateArticleAPI } from '@/apis/user'
 import { useChannel } from '@/hooks/useChannel'
 
 const { Option } = Select
 
 const Publish = () => {
+  // get article id
+  const [searchParams] = useSearchParams()
+  const articleId = searchParams.get('id')
   const [imageList, setImageList] = useState([])
+  const navigate = useNavigate()
 
   /**
    * @param {number} imageType: 0 -- non pic, 1 -- one-pic, 3 -- three-pic 
@@ -31,20 +35,36 @@ const Publish = () => {
 
   const { channelList } = useChannel()
 
-  const onFinish = (value) => {
+  const onFinish = async (value) => {
     const { title, content, channel_id } = value
     const reqData = {
       title,
       content,
       cover: {
         type: imageType,
-        images: imageList.map(item => item.response.data.url) // [imageList: {response: {data: {url: string}}}]
+        // compatible process publish/edit
+        images: imageList.map(item => {
+          if (item.response) {
+            return item.response.data.url
+          } else {
+            return item.url
+          }
+
+        }) // [imageList: {response: {data: {url: string}}}]
       },
       channel_id
     }
     if (imageType !== reqData.cover.images.length) return message.warning('The numberof over pictures do not match with type')
 
-    createArticleAPI(reqData)
+    // invoke different interface (publish/edit)
+    if (articleId) {
+      await updateArticleAPI({ ...reqData, id: articleId })
+      message.success('Update successfully!')
+    } else {
+      await createArticleAPI(reqData)
+      message.success('Publish successfully!')
+    }
+    navigate('/article')
   }
 
   // upload callback
@@ -56,9 +76,6 @@ const Publish = () => {
     setImageType(e.target.value)
   }
 
-  // get article id
-  const [searchParams] = useSearchParams()
-  const articleId = searchParams.get('id')
   // get form instance
   const [form] = Form.useForm()
   useEffect(() => {
